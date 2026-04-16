@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  name         String?
+  email        String   @unique
+  passwordHash String?
+  role         String   @default("MENTOR")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  mentor       Mentor?
+}
+
+// ── Core Domain ──────────────────────────────────────────────────────────────
+
+model Mentor {
+  id            String     @id @default(cuid())
+  userId        String     @unique
+  user          User       @relation(fields: [userId], references: [id])
+  nome          String
+  email         String     @unique
+  especialidade String?
+  alunos        Aluno[]
+  mentorias     Mentoria[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Aluno {
+  id             String     @id @default(cuid())
+  nome           String
+  email          String     @unique
+  telefone       String?
+  cursoInteresse String?
+  dataMatricula  DateTime?
+  status         String     @default("LEAD_FRIO")
+  canalOrigem    String?
+  mentorId       String?
+  mentor         Mentor?    @relation(fields: [mentorId], references: [id])
+  npsScore       Int?
+  resultadoLink  String?
+  observacoes    String?
+  tags           AlunoTag[]
+  mentorias      Mentoria[]
+  okrs           OKR[]
+  alertas        Alerta[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model AlunoTag {
+  id        String   @id @default(cuid())
+  alunoId   String
+  aluno     Aluno    @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  tag       String
+  createdAt DateTime @default(now())
+
+  @@unique([alunoId, tag])
+}
+
+model Mentoria {
+  id                   String    @id @default(cuid())
+  alunoId              String
+  aluno                Aluno     @relation(fields: [alunoId], references: [id])
+  mentorId             String
+  mentor               Mentor    @relation(fields: [mentorId], references: [id])
+  tipo                 String
+  dataAgendada         DateTime
+  dataRealizada        DateTime?
+  status               String    @default("AGENDADA")
+  notaMentor           Int?
+  feedbackQualitativo  String?
+  entregaveisRecebidos Boolean   @default(false)
+  sequenciaNumero      Int?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+// ── OKR Module ───────────────────────────────────────────────────────────────
+
+model OKR {
+  id         String      @id @default(cuid())
+  alunoId    String
+  aluno      Aluno       @relation(fields: [alunoId], references: [id])
+  tipo       String
+  objetivo   String      @default("")
+  peso       Float       @default(0.5)
+  keyResults KeyResult[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@unique([alunoId, tipo])
+}
+
+model KeyResult {
+  id              String   @id @default(cuid())
+  okrId           String
+  okr             OKR      @relation(fields: [okrId], references: [id], onDelete: Cascade)
+  descricao       String
+  meta            String   @default("")
+  peso            Float    @default(0.33)
+  resultadoM1     Float?
+  resultadoM2     Float?
+  resultadoM3     Float?
+  atingimentoPerc Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ── Alerts ───────────────────────────────────────────────────────────────────
+
+model Alerta {
+  id          String    @id @default(cuid())
+  alunoId     String
+  aluno       Aluno     @relation(fields: [alunoId], references: [id])
+  tipo        String
+  status      String    @default("PENDENTE")
+  mensagem    String
+  metadados   String?
+  criadoEm    DateTime  @default(now())
+  resolvidoEm DateTime?
+}
