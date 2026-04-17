@@ -31,7 +31,7 @@ export default async function AlunoDetailPage({
   if (!aluno) notFound();
 
   const okrScore = calculateStudentOKRScore(aluno.okrs);
-  const pendingAlerts = aluno.alertas.filter((a) => a.status === "PENDENTE");
+  const pendingAlerts = aluno.alertas.filter((a: any) => a.status === "PENDENTE");
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
