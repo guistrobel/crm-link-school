@@ -1,4 +1,4 @@
-import type { KeyResult, OKR } from "@/generated/prisma";
+import type { KeyResult, OKR } from "@prisma/client";
 
 export interface KeyResultWithProgress extends KeyResult {
   calculatedAtingimento: number;
